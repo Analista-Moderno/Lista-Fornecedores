@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Lista Top Fornecedores</title>
+  <style>
+    :root {
+      --vdm: #1f6bc1;
+      --vdm-light: #f3e8fa;
+      --vdm-dark: #1f6bc1;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --sub: #666;
+      --border: #e0e0e0;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: #fff;
+      padding: 16px 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+      white-space: nowrap;
+    }
+
+    .logo span {
+      color: var(--vdm);
+    }
+
+    .count-badge {
+      background: var(--vdm-light);
+      color: var(--vdm);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--sub);
+      pointer-events: none;
+    }
+
+    #search {
+      width: 100%;
+      padding: 10px 12px 10px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 15px;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    #search:focus {
+      border-color: var(--vdm);
+    }
+
+    #search::placeholder {
+      color: #aaa;
+    }
+
+    /* CATEGORY TABS SCROLL */
+    .tabs-wrap {
+      overflow-x: auto;
+      display: flex;
+      gap: 8px;
+      padding-bottom: 12px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .tabs-wrap::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      flex-shrink: 0;
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--sub);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active,
+    .tab-btn:active {
+      background: var(--vdm);
+      border-color: var(--vdm);
+      color: #fff;
+    }
+
+    /* CONTENT */
+    main {
+      padding: 16px;
+      padding-bottom: 32px;
+    }
+
+    /* CATEGORY SECTIONS */
+    .category {
+      margin-bottom: 8px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+      gap: 10px;
+    }
+
+    .cat-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .cat-title {
+      font-size: 15px;
+      font-weight: 600;
+      flex: 1;
+      color: var(--text);
+    }
+
+    .cat-count {
+      font-size: 12px;
+      color: var(--sub);
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .cat-arrow {
+      color: var(--sub);
+      font-size: 18px;
+      transition: transform 0.25s;
+      flex-shrink: 0;
+    }
+
+    .category.open .cat-arrow {
+      transform: rotate(180deg);
+    }
+
+    .category-body {
+      display: none;
+      padding: 0 12px 12px;
+      gap: 8px;
+      flex-direction: column;
+    }
+
+    .category.open .category-body {
+      display: flex;
+    }
+
+    /* SUPPLIER CARD */
+    .supplier-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+    }
+
+    .supplier-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .supplier-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .supplier-location {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .supplier-tag {
+      font-size: 11px;
+      background: var(--vdm-light);
+      color: var(--vdm);
+      padding: 1px 7px;
+      border-radius: 10px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    .btn-link {
+      flex-shrink: 0;
+      background: var(--vdm);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-link:active {
+      background: var(--vdm-dark);
+    }
+
+    /* NO RESULTS */
+    .no-results {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--sub);
+      display: none;
+    }
+
+    .no-results svg {
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    .no-results p {
+      font-size: 15px;
+    }
+
+    /* SEARCH RESULTS MODE */
+    .search-list {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-list.visible {
+      display: flex;
+    }
+
+    .categories-list.hidden {
+      display: none;
+    }
+
+    .search-cat-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--vdm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+      margin-bottom: 2px;
+      padding-left: 2px;
+    }
+
+    mark {
+      background: #f9d6ff;
+      color: var(--vdm-dark);
+      border-radius: 3px;
+      padding: 0 1px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-top">
+      <div class="logo">Top <span>Fornecedores</span></div>
+      <div class="count-badge" id="totalBadge">— fornecedores</div>
+    </div>
+    <div class="search-wrap">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+      <input type="search" id="search" placeholder="Buscar fornecedor, cidade..." autocomplete="off" autocorrect="off">
+    </div>
+    <div class="tabs-wrap" id="tabsWrap"></div>
+  </header>
+
+  <main>
+    <div class="search-list" id="searchList"></div>
+    <div class="categories-list" id="categoriesList"></div>
+    <div class="no-results" id="noResults">
+      <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+      <p>Nenhum fornecedor encontrado</p>
+    </div>
+  </main>
+
+  <script>
+    const L = s => `https://link.jesuetome.com.br/${s}`;
+
+    const DATA = [
+      {
+        id: "camisetas",
+        icon: "👕",
+        title: "Camisetas lisas",
+        suppliers: [
+          { name: "Casa do Algodão", loc: "Brusque - SC", url: L("casadoalgodao") },
+          { name: "Aeon Private Label", loc: "Belo Horizonte - MG", url: L("aeon") },
+          { name: "Clothing Co", loc: "São Paulo - SP", url: L("clothingco") },
+          { name: "Brunx", loc: "Brusque - SC", url: L("brunxconfeccoes") },
+          { name: "VB Camisetas", loc: "Itajaí - SC", url: L("vbcamisetas") },
+          { name: "Arretados Silk", loc: "Fortaleza - CE", url: L("arretadossilk") },
+          { name: "Basic T&M", loc: "Brusque - SC", tag: "personalizados", url: L("tempersonalizados") },
+          { name: "Minha Marca PV", loc: "Palhoça - SC", url: L("minhamarcapv") },
+          { name: "Texpill", loc: "Itajaí - SC", url: L("texpill") },
+          { name: "Iz Têxtil", loc: "Brusque - SC", url: L("iztextil") },
+          { name: "Heir Private Label", loc: "São Bernardo do Campo - SP", url: L("heirprivatelabel") },
+          { name: "Usmark", loc: "Blumenau - SC", url: L("usmark") },
+          { name: "Kan House", loc: "Vila Velha - ES", url: L("kanhouse") },
+          { name: "Real Serigrafia", loc: "Canoas - RS", url: L("realserigrafia") },
+          { name: "Borba Confecção", loc: "Vila Velha - ES", url: L("borbaconfeccoes") },
+          { name: "Raspa Língua", loc: "Paranavaí - PR", tag: "Brim, Jardineira", url: L("raspalingua") },
+          { name: "Roupa de Universitário", loc: "Juiz de Fora - MG", tag: "Jersey", url: L("roupadeuniversitario") },
+          { name: "Mega Private Label", loc: "São Paulo - SP", url: L("megaprivatelabel") },
+          { name: "Urban Label", loc: "São Paulo - SP", url: L("urbanlabel") },
+          { name: "Concept", loc: "Santos - SP", url: L("conceptconfeccao") },
+          { name: "Tricottex Uniforme", loc: "Marumbi - PR", url: L("tricottexuniformes") },
+          { name: "Raaf CO", loc: "São Paulo - SP", url: L("raafco") },
+        ]
+      },
+      {
+        id: "fitness",
+        icon: "🏋️",
+        title: "Linha fitness",
+        suppliers: [
+          { name: "Aeon Private Label", loc: "Belo Horizonte - MG", url: L("aeon") },
+          { name: "Base Ativa", loc: "Caxias do Sul - RS", url: L("baseativafitness") },
+          { name: "Ideal Fit", loc: "Campo Limpo - SP", url: L("idealfit") },
+          { name: "Ave Têxtil", loc: "Tijucas - SC", url: L("avetextil") },
+          { name: "4 Uniformes", loc: "Belo Horizonte - MG", url: L("4uniformes") },
+          { name: "Valora Têxtil", loc: "São Paulo - SP", url: L("valoratextil") },
+          { name: "Private Label Sensualitá", loc: "Tubarão - SC", url: L("privatelabelsensualita") },
+          { name: "Private Label Biquínis e Fitness", loc: "Jaraguá do Sul - SC", url: L("privatelabelbiquinisefitness") },
+          { name: "Rosamaria Fitness", loc: "Brusque - SC", url: L("rosamariafitness") },
+          { name: "Diva Fitness", loc: "São Paulo - SP", url: L("ficafitnessbr") },
+          { name: "Cgiardi Studio", loc: "Rio de Janeiro - RJ", url: L("cgiardistudio") },
+          { name: "Bodymakers", loc: "Rio de Janeiro - RJ", url: L("bodymakers") },
+        ]
+      },
+      {
+        id: "esportiva",
+        icon: "⚽",
+        title: "Linha esportiva",
+        suppliers: [
+          { name: "VB Camisetas", loc: "Itajaí - SC", url: L("vbcamisetas") },
+          { name: "Basic T&M", loc: "Brusque - SC", tag: "personalizados", url: L("tempersonalizados") },
+          { name: "Super Bolla", loc: "Goiânia - GO", url: L("superbolla") },
+          { name: "Ideal Fit", loc: "Campo Limpo - SP", url: L("idealfit") },
+          { name: "Atleticaps", loc: "Maringá - PR", url: L("atleticaps") },
+          { name: "Urban Label", loc: "São Paulo - SP", url: L("urbanlabel") },
+          { name: "Invictus", loc: "Esteio - RS", tag: "rashguard, kimono", url: L("invictus") },
+          { name: "Icone Sports", loc: "Vila Velha - ES", url: L("iconesports") },
+          { name: "Use Uniex", loc: "São Paulo - SP", url: L("useuniex") },
+          { name: "Lefit Private Label", loc: "Chapecó - SC", url: L("lefit-uniformesesportivos") },
+          { name: "Mantle Brasil", loc: "Vila Velha - ES", url: L("mantlebrasil") },
+          { name: "4 Uniformes", loc: "Belo Horizonte - MG", url: L("4uniformes") },
+          { name: "Roupa de Universitário", loc: "Juiz de Fora - MG", url: L("roupadeuniversitario") },
+          { name: "Camisetas de Corrida", loc: "Garopaba - SC", url: L("camisetasdecorrida") },
+          { name: "Moletonia", loc: "Franca - SP", url: L("moletonia") },
+          { name: "Raaf CO", loc: "São Paulo - SP", url: L("raafco") },
+          { name: "Eudajo", loc: "Novo Hamburgo - RS", url: L("eudajouniformesesportivos") },
+          { name: "Catapulta Personalizados", loc: "Arvorezinha - RS", url: L("catapultapersonalizados") },
+        ]
+      },
+      {
+        id: "pod",
+        icon: "🖨️",
+        title: "Print on Demand (POD)",
+        suppliers: [
+          { name: "Reserva Ink", loc: "Rio de Janeiro - RJ", url: "https://reservaink.com.br/jesue-tome/" },
+          { name: "Hiltz", loc: "Indaiatuba - SP", url: L("hiltzprintondemand") },
+          { name: "Brunx", loc: "Brusque - SC", url: L("brunxconfeccoes") },
+          { name: "Izzy Print", loc: "São Paulo - SP", url: L("izzyprint") },
+          { name: "Drop Simples Dimona", loc: "Duque de Caxias - RJ", url: L("dropsimplesdimona") },
+          { name: "Flecha Lab", loc: "Carapicuíba - SP", url: L("flechalab") },
+        ]
+      },
+      {
+        id: "moletons",
+        icon: "🧥",
+        title: "Casacos e moletons",
+        suppliers: [
+          { name: "Aeon Private Label", loc: "Belo Horizonte - MG", url: L("aeon") },
+          { name: "Clothing Co", loc: "São Paulo - SP", url: L("clothingco") },
+          { name: "Basic T&M", loc: "Brusque - SC", tag: "personalizados", url: L("tempersonalizados") },
+          { name: "Minha Marca PV", loc: "Palhoça - SC", url: L("minhamarcapv") },
+          { name: "Texpill", loc: "Itajaí - SC", url: L("texpill") },
+          { name: "Confecções Inove", loc: "Varginha - MG", url: L("confeccoesinove") },
+          { name: "Brunx", loc: "Brusque - SC", url: L("brunxconfeccoes") },
+          { name: "Iz Têxtil", loc: "Brusque - SC", url: L("iztextil") },
+          { name: "Urban Label", loc: "São Paulo - SP", url: L("urbanlabel") },
+          { name: "Concept", loc: "Santos - SP", url: L("conceptconfeccao") },
+          { name: "Kan House", loc: "Vila Velha - ES", url: L("kanhouse") },
+          { name: "Tricottex Uniforme", loc: "Marumbi - PR", url: L("tricottexuniformes") },
+        ]
+      },
+      {
+        id: "feminina",
+        icon: "👗",
+        title: "Linha Feminina",
+        suppliers: [
+          { name: "DB Private Label", loc: "Florianópolis - SC", url: L("dbprivatelabel") },
+          { name: "Clegitam Jeans", loc: "Brusque - SC", url: L("clegitamjeans") },
+          { name: "Yasmin Maria", loc: "São Paulo - SP", url: L("yasminmaria") },
+          { name: "MD Confecções", loc: "Itaquaquecetuba - SP", url: L("mdconfeccoes") },
+          { name: "Valora Têxtil", loc: "São Paulo - SP", url: L("valoratextil") },
+          { name: "Faccionamos Roupas", loc: "", url: L("caccionamosroupas") },
+          { name: "E-Moold", loc: "", url: L("emoold") },
+          { name: "Kibeleza Confecções", loc: "Gaspar - SC", url: L("kibelezaconfeccoes") },
+          { name: "L & L Confecções", loc: "Santo André - SP", url: L("llarteconfeccoes") },
+          { name: "Priscis Uniformes", loc: "Araranguá - SC", url: L("priscisuniformes") },
+        ]
+      },
+      {
+        id: "alfaiataria",
+        icon: "🧵",
+        title: "Alfaiataria",
+        suppliers: [
+          { name: "Vip Private Label", loc: "Caruaru - PE", url: L("vipprivatelabel") },
+          { name: "Atelie Violet", loc: "Bela Vista - SP", url: L("atelieviolet") },
+          { name: "Up Custom", loc: "Tubarão - SC", url: L("upcustom") },
+          { name: "DB Private Label", loc: "Florianópolis - SC", url: L("dbprivatelabel") },
+          { name: "Royal Tecidos", loc: "São Paulo - SP", url: L("royaltecidos") },
+          { name: "Private Artelie", loc: "", url: L("privateartelie") },
+          { name: "E-Moold", loc: "", url: L("emoold") },
+        ]
+      },
+      {
+        id: "bermudas",
+        icon: "🩳",
+        title: "Bermudas",
+        suppliers: [
+          { name: "Aeon Private Label", loc: "Belo Horizonte - MG", url: L("aeon") },
+          { name: "Clothing Co", loc: "São Paulo - SP", url: L("clothingco") },
+          { name: "Brunx", loc: "Brusque - SC", url: L("brunxconfeccoes") },
+          { name: "Texpill", loc: "Itajaí - SC", url: L("texpill") },
+          { name: "Clegitam Jeans", loc: "Brusque - SC", url: L("clegitamjeans") },
+          { name: "Vest Surf / Faça Sua Marca", loc: "Itaperuna - RJ", url: L("vestsurf") },
+          { name: "The Labtex", loc: "Brusque - SC", url: L("thelabtex") },
+          { name: "Moletonia", loc: "Franca - SP", url: L("moletonia") },
+          { name: "Unifabric PL", loc: "Divinópolis - MG", url: L("unifabricpl") },
+          { name: "Vip Private Label", loc: "Caruaru - PE", url: L("vipprivatelabel") },
+        ]
+      },
+      {
+        id: "calcas",
+        icon: "👖",
+        title: "Calças",
+        suppliers: [
+          { name: "Clothing Co", loc: "São Paulo - SP", url: L("clothingco") },
+          { name: "Basic T&M", loc: "Brusque - SC", tag: "personalizados", url: L("tempersonalizados") },
+          { name: "Texpill", loc: "Itajaí - SC", url: L("texpill") },
+          { name: "Clegitam Jeans", loc: "Brusque - SC", url: L("clegitamjeans") },
+          { name: "Brunx", loc: "Brusque - SC", url: L("brunxconfeccoes") },
+          { name: "Kan House", loc: "Vila Velha - ES", url: L("kanhouse") },
+          { name: "Klass Denim", loc: "Içara - SC", url: L("klassdenim") },
+        ]
+      },
+      {
+        id: "lingerie",
+        icon: "🩱",
+        title: "Linha íntima (lingerie)",
+        suppliers: [
+          { name: "Stick Lingerie", loc: "Pará de Minas - MG", url: L("strelisse") },
+          { name: "Valora Têxtil", loc: "São Paulo - SP", url: L("valoratextil") },
+          { name: "Aeon Private Label", loc: "Belo Horizonte - MG", tag: "masculina", url: L("aeon") },
+          { name: "Serikawa Confecções", loc: "", tag: "masculina", url: L("serikawaconfeccoes") },
+        ]
+      },
+      {
+        id: "praia",
+        icon: "🏖️",
+        title: "Biquíni e linha praia",
+        suppliers: [
+          { name: "Quadroid", loc: "Nova Odessa - SP", url: L("quadroid") },
+          { name: "Bali Beach", loc: "São Paulo - SP", url: L("balibeach") },
+          { name: "Admirec Personalizados", loc: "Leopoldina - MG", url: L("admirecpersonalizados") },
+          { name: "Fashion Bikini Rio", loc: "Copacabana - RJ", url: L("fashionbikinirio") },
+          { name: "CRJ Private Label", loc: "Setor Oeste - GO", url: L("crjprivatelabel") },
+          { name: "Aspen Estamparia", loc: "Rio de Janeiro - RJ", url: L("aspenestamparia") },
+          { name: "Valora Têxtil", loc: "São Paulo - SP", url: L("valoratextil") },
+          { name: "Private Label Biquínis e Fitness", loc: "Jaraguá do Sul - SC", url: L("privatelabelbiquinisefitness") },
+          { name: "Cgiardi Studio", loc: "Rio de Janeiro - RJ", url: L("cgiardistudio") },
+          { name: "Darllyn", loc: "Carapicuíba - SP", url: L("darllyn") },
+        ]
+      },
+      {
+        id: "pijamas",
+        icon: "😴",
+        title: "Pijamas",
+        suppliers: [
+          { name: "Zuzu Pijamas", loc: "São Paulo - SP", url: L("zuzupijamas") },
+          { name: "Regidelli", loc: "Araguari - MG", url: L("regidelli") },
+        ]
+      },
+      {
+        id: "infantil",
+        icon: "🧒",
+        title: "Infantil",
+        suppliers: [
+          { name: "We Custom", loc: "Brusque - SC", url: L("wecustom") },
+          { name: "Regidelli", loc: "Araguari - MG", url: L("regidelli") },
+          { name: "Valora Têxtil", loc: "São Paulo - SP", url: L("valoratextil") },
+          { name: "Mega Private Label", loc: "São Paulo - SP", url: L("megaprivatelabel") },
+          { name: "Cgiardi Studio", loc: "Rio de Janeiro - RJ", url: L("cgiardistudio") },
+          { name: "DDX Têxtil", loc: "Gaspar - SC", url: L("ddxtextil") },
+        ]
+      },
+      {
+        id: "toalhas",
+        icon: "🛁",
+        title: "Toalhas",
+        suppliers: [
+          { name: "Lufamar", loc: "Brusque - SC", url: L("lufamar") },
+          { name: "Aspen Estamparia", loc: "Rio de Janeiro - RJ", url: L("aspenestamparia") },
+        ]
+      },
+      {
+        id: "bones",
+        icon: "🧢",
+        title: "Bonés, gorros, cachecóis",
+        suppliers: [
+          { name: "Clothing Co", loc: "São Paulo - SP", url: L("clothingco") },
+          { name: "Brunx", loc: "Brusque - SC", url: L("brunxconfeccoes") },
+          { name: "Gorros FA", loc: "Panambi - RS", url: L("fgorrosfa") },
+          { name: "Basic T&M", loc: "Brusque - SC", tag: "personalizados", url: L("tempersonalizados") },
+          { name: "Fator 8", loc: "Apucarana - PR", url: L("fator8") },
+          { name: "Atleticaps", loc: "Maringá - PR", url: L("atleticaps") },
+          { name: "Trivius", loc: "Fortaleza - CE", url: L("trivius") },
+          { name: "Kan House", loc: "Vila Velha - ES", url: L("kanhouse") },
+          { name: "CRR Bonés", loc: "Apucarana - PR", url: L("crrbones") },
+        ]
+      },
+      {
+        id: "bags",
+        icon: "👜",
+        title: "Bags, carteiras, cintos e mochilas",
+        suppliers: [
+          { name: "Fator 8", loc: "Apucarana - PR", url: L("fator8") },
+          { name: "Trivius", loc: "Fortaleza - CE", url: L("trivius") },
+          { name: "Artillee", loc: "Maringá - PR", url: L("artillee") },
+          { name: "Berchelle Bolsas", loc: "Sombrio - SC", url: L("berchellebolsas") },
+          { name: "Cintos Universo", loc: "São Paulo - SP", url: L("cintouniverso") },
+          { name: "Sacola Ecológica", loc: "Casa Verde - SP", url: L("sacolaecologica") },
+          { name: "Ad Confecção", loc: "São Paulo - SP", url: L("adconfeccao") },
+          { name: "Agnesrasta", loc: "São Paulo - SP", url: L("agnesrasta") },
+        ]
+      },
+      {
+        id: "oculos",
+        icon: "🕶️",
+        title: "Óculos",
+        suppliers: [
+          { name: "Private Sun Glasses", loc: "Itajaí - SC", url: L("privatesunglasses") },
+          { name: "Versatil Glasses", loc: "Suzano - SP", url: L("versatilglasses") },
+          { name: "Esmeralda Atacado", loc: "Goiânia - GO", url: L("esmeraldaatacado") },
+          { name: "Use Vazcon", loc: "São Paulo - SP", url: L("usevazcon") },
+          { name: "Maola Glasses", loc: "Gravataí - RS", url: L("maolaglasses") },
+          { name: "All Back Óculos Atacado", loc: "Tucuruvi - SP", url: L("allbackoculosatacado") },
+        ]
+      },
+      {
+        id: "meias",
+        icon: "🧦",
+        title: "Meias",
+        suppliers: [
+          { name: "JC Meias", loc: "Santo André - SP", url: L("jcmeias") },
+          { name: "Meias Elite", loc: "São Paulo - SP", url: L("meiaselite") },
+          { name: "Casa Grande Meias", loc: "Juiz de Fora - MG", url: L("casagrandemeias") },
+        ]
+      },
+      {
+        id: "calcados",
+        icon: "👟",
+        title: "Chinelos e calçados",
+        suppliers: [
+          { name: "Aeon Private Label", loc: "Belo Horizonte - MG", url: L("aeon") },
+          { name: "Sandal", loc: "Jundiaí - SP", url: L("sandal") },
+          { name: "Hud Lab", loc: "Nova Hartz - RS", url: L("hudlab") },
+        ]
+      },
+      {
+        id: "dtf",
+        icon: "🎨",
+        title: "Estampas DTF",
+        suppliers: [
+          { name: "Castro Atacado", loc: "Franca - SP", url: L("castoatacado") },
+          { name: "Tagless Brasil", loc: "Salto - SP", url: L("tglessbrasil") },
+          { name: "Deeme", loc: "Vila Maria - SP", url: L("deeme") },
+        ]
+      },
+      {
+        id: "personalizados",
+        icon: "🖼️",
+        title: "Personalizados e adesivos",
+        suppliers: [
+          { name: "64 Bits", loc: "São Paulo - SP", url: L("64bits2") },
+          { name: "Boss Impressões", loc: "São Leopoldo - RS", url: L("bossimpressoes") },
+          { name: "Limie Design", loc: "Campo Grande - MS", url: L("limiedesign") },
+          { name: "Forma Gifts", loc: "Vazante - MG", url: L("formagifts") },
+          { name: "Luli Paper", loc: "Peruíbe - SP", url: L("lulipaper") },
+          { name: "Ti Queta", loc: "São Paulo - SP", url: L("tiqueta") },
+        ]
+      },
+      {
+        id: "etiquetas",
+        icon: "🏷️",
+        title: "Etiquetas personalizadas",
+        suppliers: [
+          { name: "Define Design", loc: "Agreste - PE", url: L("definedesign2") },
+          { name: "Etical Etiquetas", loc: "Caruaru - PE", url: L("eticaletiquetas") },
+          { name: "Mega / Haco", loc: "Criciúma - SC", url: L("megamixaviamentos") },
+          { name: "New Solutions", loc: "São Paulo - SP", url: L("newsolutions") },
+          { name: "Ina Brindes", loc: "Piratininga - SP", url: L("inabrindes") },
+          { name: "Prime Etiquetas", loc: "Fortaleza - CE", url: L("primeetiquetas") },
+          { name: "Label Tag", loc: "Farroupilha - RS", url: L("labeltag") },
+          { name: "Grupo HFX Digital", loc: "São João de Meriti - RJ", url: L("grupohfxdigital") },
+          { name: "Adeconex", loc: "Vila Velha - ES", url: L("adeconex") },
+          { name: "Udiflex Rótulo", loc: "Uberlândia - MG", url: L("udiflexrotulo") },
+          { name: "Elite Etiquetas", loc: "Brusque - SC", url: L("eliteetiquetas") },
+        ]
+      },
+      {
+        id: "cabides",
+        icon: "🪝",
+        title: "Cabides personalizados",
+        suppliers: [
+          { name: "Forma Gifts", loc: "Vazante - MG", url: L("formagifts") },
+          { name: "Luna Fiber", loc: "São Paulo - SP", url: L("lunafiber") },
+        ]
+      },
+      {
+        id: "brindes",
+        icon: "🎁",
+        title: "Chaveiros, isqueiros e brindes",
+        suppliers: [
+          { name: "Forma Gifts", loc: "Vazante - MG", url: L("formagifts") },
+          { name: "Ina Brindes", loc: "Piratininga - SP", url: L("inabrindes") },
+          { name: "Criateli", loc: "Franca - SP", url: L("criateli") },
+          { name: "Magu Hand Made", loc: "Içara - SC", url: L("maguhandmade") },
+          { name: "Giasse Personalizados", loc: "Santo Amaro - SP", url: L("giassepersonalizados") },
+        ]
+      },
+      {
+        id: "embalagens",
+        icon: "📦",
+        title: "Embalagens e caixas",
+        suppliers: [
+          { name: "TZ Personalizados", loc: "São Paulo - SP", url: L("tzpersonalizados") },
+          { name: "Sol Nascente", loc: "Itajaí - SC", url: L("solnascente2") },
+          { name: "Seda Embalagens", loc: "São Bernardo do Campo - SP", url: L("sedaembalagens") },
+          { name: "Limie Design", loc: "Campo Grande - MS", url: L("limiedesign") },
+          { name: "Trevo Pack", loc: "Indaiatuba - SP", url: L("trevopack") },
+          { name: "Upaper", loc: "Cascavel - PR", url: L("upaper") },
+          { name: "Embalagem Fácil", loc: "Várzea Paulista - SP", url: L("embalagemfacil") },
+          { name: "Qualypel", loc: "Diadema - SP", url: L("qualypel") },
+          { name: "Ti Queta", loc: "São Paulo - SP", url: L("tiqueta") },
+          { name: "BN Caixas", loc: "São Paulo - SP", url: L("bncaixas") },
+          { name: "PVC Plast", loc: "Curitiba - PR", tag: "Ziplock", url: L("pvcplast") },
+          { name: "Vip Color Designer", loc: "Aparecida de Goiânia - GO", url: L("vipcolordesigner") },
+          { name: "Mag Embalagens", loc: "Rio do Sul - SC", tag: "Ziplock", url: L("magembalagens") },
+          { name: "GNC Embalagens", loc: "Diadema - SP", url: L("gncembalagens") },
+          { name: "Cartonagem Estudio Jac", loc: "Porto Alegre - RS", url: L("cartonagemestudiojac") },
+          { name: "Perfume para Papel", loc: "São Paulo - SP", url: L("perfumeparapapel") },
+          { name: "Innovare Fragancias", loc: "Videira - SC", url: L("innovarefragancias") },
+          { name: "Caixas Net", loc: "São Paulo - SP", url: L("caixasnet") },
+        ]
+      },
+      {
+        id: "moldes",
+        icon: "📐",
+        title: "Moldes e modelagem",
+        suppliers: [
+          { name: "Cia Moldes", loc: "São Paulo - SP", url: L("ciamoldes") },
+          { name: "E-Moold", loc: "", url: L("emoold") },
+        ]
+      },
+      {
+        id: "tecidos",
+        icon: "🧶",
+        title: "Tecidos e malhas",
+        suppliers: [
+          { name: "Salotex Tecidos", loc: "Jaçanã - SP", tag: "Fitness e Praia", url: L("salotextecidos") },
+          { name: "Nanete Têxtil", loc: "Jaraguá do Sul - SC", tag: "Camisetas", url: L("nanetetextil") },
+          { name: "Santa Constância", loc: "São Paulo - SP", tag: "Esportiva, Fitness, Praia", url: L("santaconstancia") },
+          { name: "Sprint Têxtil", loc: "Americana - SP", tag: "Moda Feminina", url: L("sprinttextil") },
+          { name: "Royal Tecidos", loc: "São Paulo - SP", tag: "Moda Feminina", url: L("royaltecidos") },
+          { name: "Rosset Têxtil", loc: "Bom Retiro - SP", tag: "Fitness e Praia", url: L("rossettextil") },
+        ]
+      },
+      {
+        id: "marca",
+        icon: "®️",
+        title: "Registro de marca",
+        suppliers: [
+          { name: "Totall Marcas", loc: "Belo Horizonte - MG", tag: "R$1.000 de desconto", url: "https://conteudo.totallmarcas.com.br/comunidade-vdm" },
+        ]
+      },
+      {
+        id: "design",
+        icon: "✏️",
+        title: "Design de estampa",
+        suppliers: [
+          { name: "Mauro Bono", loc: "", url: L("maurobono") },
+          { name: "Clara Bessel", loc: "", url: L("clarabessel") },
+          { name: "Miguel Hatsek", loc: "", url: L("miguelhatsek") },
+        ]
+      },
+      {
+        id: "digital",
+        icon: "💻",
+        title: "Plataformas e serviços digitais",
+        suppliers: [
+          { name: "Nuvem Shop", loc: "", tag: "ecommerce", url: "https://www.nuvemshop.com.br/partners/viver-de-marca" },
+          { name: "Bling", loc: "", tag: "ERP / NF-e", url: "https://www.bling.com.br/planos-e-precos/VDM" },
+          { name: "Zoppy", loc: "", tag: "CRM / automação", url: "https://www.zoppy.com.br" },
+          { name: "WayTrack", loc: "", tag: "análise de tráfego", url: "https://wtrackoficial.com.br/" },
+        ]
+      },
+    ];
+
+    // Build tabs
+    const tabsWrap = document.getElementById('tabsWrap');
+    const allTab = document.createElement('button');
+    allTab.className = 'tab-btn active';
+    allTab.textContent = 'Todos';
+    allTab.dataset.cat = 'all';
+    tabsWrap.appendChild(allTab);
+
+    DATA.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'tab-btn';
+      btn.textContent = `${cat.icon} ${cat.title}`;
+      btn.dataset.cat = cat.id;
+      tabsWrap.appendChild(btn);
+    });
+
+    // Count total
+    const total = DATA.reduce((s, c) => s + c.suppliers.length, 0);
+    document.getElementById('totalBadge').textContent = `${total} fornecedores`;
+
+    // Build category sections
+    const categoriesList = document.getElementById('categoriesList');
+
+    function buildCard(s, highlight = '') {
+      const card = document.createElement('div');
+      card.className = 'supplier-card';
+
+      const info = document.createElement('div');
+      info.className = 'supplier-info';
+
+      const name = document.createElement('div');
+      name.className = 'supplier-name';
+      name.innerHTML = highlight ? highlightText(s.name, highlight) : escHtml(s.name);
+      info.appendChild(name);
+
+      if (s.loc) {
+        const loc = document.createElement('div');
+        loc.className = 'supplier-location';
+        loc.innerHTML = `<svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>${highlight ? highlightText(s.loc, highlight) : escHtml(s.loc)}`;
+        info.appendChild(loc);
+      }
+
+      if (s.tag) {
+        const tag = document.createElement('div');
+        tag.className = 'supplier-tag';
+        tag.textContent = s.tag;
+        info.appendChild(tag);
+      }
+
+      const link = document.createElement('a');
+      link.className = 'btn-link';
+      link.href = s.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.innerHTML = `Acessar <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>`;
+
+      card.appendChild(info);
+      card.appendChild(link);
+      return card;
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function highlightText(str, q) {
+      if (!q) return escHtml(str);
+      const escaped = escHtml(str);
+      const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return escaped.replace(new RegExp(escapedQ, 'gi'), m => `<mark>${m}</mark>`);
+    }
+
+    DATA.forEach(cat => {
+      const section = document.createElement('div');
+      section.className = 'category';
+      section.dataset.id = cat.id;
+
+      const header = document.createElement('div');
+      header.className = 'category-header';
+      header.innerHTML = `
+    <span class="cat-icon">${cat.icon}</span>
+    <span class="cat-title">${cat.title}</span>
+    <span class="cat-count">${cat.suppliers.length}</span>
+    <span class="cat-arrow">⌄</span>
+  `;
+
+      const body = document.createElement('div');
+      body.className = 'category-body';
+
+      cat.suppliers.forEach(s => body.appendChild(buildCard(s)));
+
+      header.addEventListener('click', () => {
+        section.classList.toggle('open');
+      });
+
+      section.appendChild(header);
+      section.appendChild(body);
+      categoriesList.appendChild(section);
+    });
+
+    // Tab filtering
+    let activeTab = 'all';
+    tabsWrap.addEventListener('click', e => {
+      const btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+      activeTab = btn.dataset.cat;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Scroll tab into view
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+      const query = document.getElementById('search').value.trim();
+      if (!query) {
+        filterCategories(activeTab);
+      } else {
+        renderSearch(query);
+      }
+    });
+
+    function filterCategories(catId) {
+      document.getElementById('searchList').classList.remove('visible');
+      document.getElementById('categoriesList').classList.remove('hidden');
+      document.getElementById('noResults').style.display = 'none';
+
+      document.querySelectorAll('.category').forEach(sec => {
+        if (catId === 'all' || sec.dataset.id === catId) {
+          sec.style.display = '';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+
+      // Auto-open if single category selected
+      if (catId !== 'all') {
+        document.querySelectorAll('.category').forEach(sec => {
+          if (sec.dataset.id === catId) sec.classList.add('open');
+        });
+      }
+    }
+
+    // Search
+    const searchInput = document.getElementById('search');
+    let searchTimer;
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        const q = searchInput.value.trim();
+        if (!q) {
+          document.getElementById('searchList').classList.remove('visible');
+          document.getElementById('categoriesList').classList.remove('hidden');
+          document.getElementById('noResults').style.display = 'none';
+          filterCategories(activeTab);
+        } else {
+          renderSearch(q);
+        }
+      }, 200);
+    });
+
+    function renderSearch(q) {
+      const searchList = document.getElementById('searchList');
+      const catList = document.getElementById('categoriesList');
+      const noResults = document.getElementById('noResults');
+
+      searchList.innerHTML = '';
+      const lower = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      let total = 0;
+
+      DATA.forEach(cat => {
+        if (activeTab !== 'all' && cat.id !== activeTab) return;
+
+        const matches = cat.suppliers.filter(s => {
+          const haystack = (s.name + ' ' + s.loc + ' ' + (s.tag || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          return haystack.includes(lower);
+        });
+
+        if (matches.length === 0) return;
+        total += matches.length;
+
+        const label = document.createElement('div');
+        label.className = 'search-cat-label';
+        label.textContent = `${cat.icon} ${cat.title}`;
+        searchList.appendChild(label);
+
+        matches.forEach(s => searchList.appendChild(buildCard(s, q)));
+      });
+
+      if (total === 0) {
+        searchList.classList.remove('visible');
+        catList.classList.add('hidden');
+        noResults.style.display = 'block';
+      } else {
+        searchList.classList.add('visible');
+        catList.classList.add('hidden');
+        noResults.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+
+</html>
